@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shopping_list/data/dummy_items.dart';
 import 'package:shopping_list/models/grocery_item.dart';
 import 'package:shopping_list/screens/new_item.dart';
 
@@ -29,20 +28,61 @@ class _GroceryScreenState extends State<GroceryScreen> {
     });
   }
 
+  void _removeItem(GroceryItem item) {
+    final indexofItem = _groceryItems.indexOf(item);
+    setState(() {
+      _groceryItems.remove(item);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 1),
+        content: Row(
+          children: [
+            const Text('Item Removed. Undo'),
+            const Spacer(),
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  _groceryItems.insert(indexofItem, item);
+                });
+              },
+              icon: const Icon(
+                Icons.undo,
+                size: 20,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget activeContent;
     activeContent = ListView.builder(
       itemCount: _groceryItems.length,
       itemBuilder: (context, index) {
-        return ListTile(
-          leading: Container(
-            height: 16,
-            width: 16,
-            color: _groceryItems[index].category.color,
+        return Dismissible(
+          key: ValueKey(_groceryItems[index]),
+          onDismissed: (direction) {
+            _removeItem(_groceryItems[index]);
+          },
+          background: Container(
+            height: 20,
+            width: double.infinity,
+            color: Colors.red,
           ),
-          title: Text(_groceryItems[index].name),
-          trailing: Text(_groceryItems[index].quantity.toString()),
+          child: ListTile(
+            leading: Container(
+              height: 16,
+              width: 16,
+              color: _groceryItems[index].category.color,
+            ),
+            title: Text(_groceryItems[index].name),
+            trailing: Text(_groceryItems[index].quantity.toString()),
+          ),
         );
       },
     );
