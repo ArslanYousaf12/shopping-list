@@ -16,6 +16,7 @@ class GroceryScreen extends StatefulWidget {
 class _GroceryScreenState extends State<GroceryScreen> {
   List<GroceryItem> _groceryItems = [];
   bool _loadingIndicator = true;
+  bool _undo = false;
 
   void _loadData() async {
     final url = Uri.https(
@@ -63,14 +64,14 @@ class _GroceryScreenState extends State<GroceryScreen> {
     });
   }
 
-  void _removeItem(GroceryItem item) {
+  void _removeItem(GroceryItem item) async {
     final indexofItem = _groceryItems.indexOf(item);
     setState(() {
       _groceryItems.remove(item);
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        duration: const Duration(seconds: 1),
+        duration: const Duration(seconds: 5),
         content: Row(
           children: [
             const Text('Item Removed. Undo'),
@@ -80,6 +81,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
                 setState(() {
                   _groceryItems.insert(indexofItem, item);
                 });
+                _undo = true;
               },
               icon: const Icon(
                 Icons.undo,
@@ -91,6 +93,21 @@ class _GroceryScreenState extends State<GroceryScreen> {
         ),
       ),
     );
+    await Future.delayed(Duration(seconds: 5));
+    if (!_undo) {
+      final url = Uri.https(
+          'shopping-list-arslan-default-rtdb.asia-southeast1.firebasedatabase.app',
+          'Shopping-List/${item.id}.json');
+
+      final response = await http.delete(url);
+      if (response.statusCode >= 400) {
+        setState(() {
+          _groceryItems.insert(indexofItem, item);
+        });
+      }
+    } else {
+      _undo = false;
+    }
   }
 
   @override
