@@ -15,6 +15,7 @@ class GroceryScreen extends StatefulWidget {
 
 class _GroceryScreenState extends State<GroceryScreen> {
   List<GroceryItem> _groceryItems = [];
+  bool _loadingIndicator = true;
 
   void _loadData() async {
     final url = Uri.https(
@@ -41,6 +42,7 @@ class _GroceryScreenState extends State<GroceryScreen> {
     }
     setState(() {
       _groceryItems = newList;
+      _loadingIndicator = false;
     });
   }
 
@@ -100,31 +102,42 @@ class _GroceryScreenState extends State<GroceryScreen> {
   @override
   Widget build(BuildContext context) {
     Widget activeContent;
-    activeContent = ListView.builder(
-      itemCount: _groceryItems.length,
-      itemBuilder: (context, index) {
-        return Dismissible(
-          key: ValueKey(_groceryItems[index]),
-          onDismissed: (direction) {
-            _removeItem(_groceryItems[index]);
-          },
-          background: Container(
-            height: 20,
-            width: double.infinity,
-            color: Colors.red,
-          ),
-          child: ListTile(
-            leading: Container(
-              height: 16,
-              width: 16,
-              color: _groceryItems[index].category.color,
+    if (_loadingIndicator) {
+      activeContent = const Center(
+        child: CircularProgressIndicator(),
+      );
+    } else if (_groceryItems.isEmpty || _groceryItems == null) {
+      activeContent = const Center(
+        child: Text('No data found try adding one'),
+      );
+    } else {
+      activeContent = ListView.builder(
+        itemCount: _groceryItems.length,
+        itemBuilder: (context, index) {
+          return Dismissible(
+            key: ValueKey(_groceryItems[index]),
+            onDismissed: (direction) {
+              _removeItem(_groceryItems[index]);
+            },
+            background: Container(
+              height: 20,
+              width: double.infinity,
+              color: Colors.red,
             ),
-            title: Text(_groceryItems[index].name),
-            trailing: Text(_groceryItems[index].quantity.toString()),
-          ),
-        );
-      },
-    );
+            child: ListTile(
+              leading: Container(
+                height: 16,
+                width: 16,
+                color: _groceryItems[index].category.color,
+              ),
+              title: Text(_groceryItems[index].name),
+              trailing: Text(_groceryItems[index].quantity.toString()),
+            ),
+          );
+        },
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Grocery LIst'),
