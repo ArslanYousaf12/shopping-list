@@ -18,9 +18,20 @@ class _NewItemState extends State<NewItem> {
   int _quantity = 1;
   var _category = categories[Categories.vegetables]!;
 
-  void _saveItem() {
+  void _saveItem() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
+      final url = Uri.https(
+          'shopping-list-arslan-default-rtdb.asia-southeast1.firebasedatabase.app',
+          'Shopping-List.json');
+      final response = await http.post(url,
+          body: jsonEncode({
+            'name': _name,
+            'quantity': _quantity,
+            'category': _category.category,
+          }));
+
       Navigator.of(context).pop(
         GroceryItem(
           id: DateTime.now().toString(),
@@ -130,7 +141,7 @@ class _NewItemState extends State<NewItem> {
                   child: const Text('Save Item'),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

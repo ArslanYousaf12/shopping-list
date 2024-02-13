@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shopping_list/data/categories.dart';
+import 'dart:convert';
+
 import 'package:shopping_list/models/grocery_item.dart';
 import 'package:shopping_list/screens/new_item.dart';
 
@@ -11,6 +15,35 @@ class GroceryScreen extends StatefulWidget {
 
 class _GroceryScreenState extends State<GroceryScreen> {
   List<GroceryItem> _groceryItems = [];
+
+  void _loadData() async {
+    final url = Uri.https(
+        'shopping-list-arslan-default-rtdb.asia-southeast1.firebasedatabase.app',
+        'Shopping-List.json');
+    final response = await http.get(url);
+    final Map<String, dynamic> loadItem = jsonDecode(response.body);
+    final List<GroceryItem> newList = [];
+    if (response.statusCode >= 400 || response.body == null) {
+      return;
+    }
+
+    for (final item in loadItem.entries) {
+      final category = categories.entries
+          .firstWhere((itm) => itm.value.category == item.value['category'])
+          .value;
+      newList.add(
+        GroceryItem(
+            id: item.key,
+            name: item.value['name'],
+            quantity: item.value['quantity'],
+            category: category),
+      );
+    }
+    setState(() {
+      _groceryItems = newList;
+    });
+  }
+
   void _newItem() async {
     final item = await Navigator.of(context).push<GroceryItem>(
       MaterialPageRoute(
@@ -56,6 +89,12 @@ class _GroceryScreenState extends State<GroceryScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    _loadData();
+    super.initState();
   }
 
   @override
