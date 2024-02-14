@@ -17,11 +17,14 @@ class _NewItemState extends State<NewItem> {
   late String _name;
   int _quantity = 1;
   var _category = categories[Categories.vegetables]!;
+  bool _saving = false;
 
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-
+      setState(() {
+        _saving = true;
+      });
       final url = Uri.https(
           'shopping-list-arslan-default-rtdb.asia-southeast1.firebasedatabase.app',
           'Shopping-List.json');
@@ -138,7 +141,13 @@ class _NewItemState extends State<NewItem> {
                 ),
                 ElevatedButton(
                   onPressed: _saveItem,
-                  child: const Text('Save Item'),
+                  child: _saving
+                      ? Container(
+                          height: 16,
+                          width: 16,
+                          child: const CircularProgressIndicator(),
+                        )
+                      : const Text('Save Item'),
                 ),
               ],
             ),
